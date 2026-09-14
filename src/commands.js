@@ -1,0 +1,4 @@
+const {REST,Routes,SlashCommandBuilder,PermissionFlagsBits}=require('discord.js'); const {getConfig}=require('./utils/db');
+const commands=[new SlashCommandBuilder().setName('security').setDescription('Show StrangeXUnbypass security status').setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild).toJSON()];
+async function registerCommands(client){const rest=new REST({version:'10'}).setToken(process.env.DISCORD_TOKEN);await rest.put(Routes.applicationCommands(process.env.CLIENT_ID),{body:commands}).catch(e=>console.error('Command registration:',e.message));client.on('interactionCreate',async i=>{if(!i.isChatInputCommand()||i.commandName!=='security')return;const c=await getConfig(i.guildId);await i.reply({ephemeral:true,content:`🛡️ Anti-Nuke: ${c.antiNuke?'ON':'OFF'}\n🤖 Bot Protection: ${c.botProtection?'ON':'OFF'}\n⚔️ Punishment: ${c.punishment}`});});}
+module.exports={registerCommands};

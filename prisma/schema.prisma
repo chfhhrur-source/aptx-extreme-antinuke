@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GuildConfig {
+  guildId             String   @id
+  antiNuke            Boolean  @default(true)
+  botProtection       Boolean  @default(true)
+  punishment          String   @default("ban")
+  logChannelId        String?
+
+  channelDeleteCount  Int      @default(3)
+  channelDeleteWindow Int      @default(10)
+  channelCreateCount  Int      @default(6)
+  channelCreateWindow Int      @default(10)
+
+  roleDeleteCount     Int      @default(3)
+  roleDeleteWindow    Int      @default(10)
+  roleCreateCount     Int      @default(6)
+  roleCreateWindow    Int      @default(10)
+
+  banCount            Int      @default(3)
+  banWindow           Int      @default(10)
+  kickCount           Int      @default(3)
+  kickWindow          Int      @default(10)
+
+  webhookCount        Int      @default(3)
+  webhookWindow       Int      @default(10)
+
+  permissionChanges   Boolean  @default(true)
+  roleChanges         Boolean  @default(true)
+  channelChanges      Boolean  @default(true)
+  guildChanges        Boolean  @default(true)
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  whitelist            GuildWhitelist[]
+  backups              Backup[]
+  logs                 SecurityLog[]
+}
+
+model GuildWhitelist {
+  id        String   @id @default(cuid())
+  guildId   String
+  userId    String
+  kind      String   @default("user")
+  createdAt DateTime @default(now())
+
+  guild     GuildConfig @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+  @@unique([guildId, userId, kind])
+  @@index([guildId])
+}
+
+model SecurityLog {
+  id         String      @id @default(cuid())
+  guildId    String
+  type       String
+  executorId String?
+  targetId   String?
+  action     String
+  details    String?
+  createdAt  DateTime    @default(now())
+
+  guild      GuildConfig @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+  @@index([guildId, createdAt])
+}
+
+model Backup {
+  id          String      @id @default(cuid())
+  guildId     String
+  name        String
+  data        Json?
+  storagePath String?
+  sizeBytes   Int?
+  sha256      String?
+  createdAt   DateTime    @default(now())
+
+  guild       GuildConfig @relation(fields: [guildId], references: [guildId], onDelete: Cascade)
+
+  @@index([guildId, createdAt])
+}
